@@ -303,18 +303,23 @@ void Rigid_body_viewer::impulse_based_collisions()
     float epsilon = 1.0f;
 
     // For each pts
-    for (int p=0; p<body_.points.size(); p++) {
+    for (int p=0; p<body_.points.size(); p++)
+    {
         // For each plane
-        for (int i=0; i<4;i++) {
+        for (int i=0; i<4;i++)
+        {
             //detect collision
-            float dist= dot(vec2(planes[i][0],planes[i][1]),body_.points[p])+ planes[i][2];
-            if (dist < 0.0f) {
+            vec2 n(planes[i][0], planes[i][1]);
+            float dist= dot(n,body_.points[p])+ planes[i][2];
+            if (dist < 0.0f &&
+                dot(body_.linear_velocity,n) < 0.0f)
+            {
                 // std::cout << dist << std::endl;
 
-                vec2 n(planes[i][0], planes[i][1]);
+
                 // Compute relative velocity
                 float vrel = dot(n ,body_.linear_velocity + body_.angular_velocity*localToWorldRotation(-body_.orientation, perp(body_.r[p])));
-                float temp = dot(perp(body_.r[p]), n);
+                float temp = dot(localToWorldRotation(-body_.orientation, perp(body_.r[p])), n);
                 // Compute j
                 float j = -(1+ epsilon)*vrel/(1/body_.mass + (temp*temp)/body_.inertia);
 
@@ -322,7 +327,7 @@ void Rigid_body_viewer::impulse_based_collisions()
                 vec2 J = j*n;
 
                 vec2 deltaV = J/body_.mass;
-                float deltaW = dot(perp(body_.r[p]),J)/body_.inertia;
+                float deltaW = dot(localToWorldRotation(-body_.orientation, perp(body_.r[p])),J)/body_.inertia;
 
                 body_.linear_velocity += deltaV;
                 body_.angular_velocity += deltaW;
