@@ -280,6 +280,9 @@ void Rigid_body_viewer::compute_forces()
 
         //Add the torque
         body_.torque += dot(localToWorldRotation(-body_.orientation, perp(body_.r.at(mouse_spring_.particle_index))), mouseSpringForce);
+
+        //std::cout << localToWorldRotation(-body_.orientation, perp(body_.r.at(mouse_spring_.particle_index))) -
+        //             perp(localToWorldRotation(-body_.orientation, body_.r.at(mouse_spring_.particle_index)))<< std::endl;
     }
 }
 
@@ -290,7 +293,6 @@ void Rigid_body_viewer::impulse_based_collisions()
 {
     /** \todo Handle collisions based on impulses
      */
-     
 
     float planes[4][3] = {
             {  0.0,  1.0, 1.0 },
@@ -298,15 +300,16 @@ void Rigid_body_viewer::impulse_based_collisions()
             {  1.0,  0.0, 1.0 },
             { -1.0,  0.0, 1.0 }
         };
-    int epsilon = 0;
+    float epsilon = 1.0f;
 
     // For each pts
     for (int p=0; p<body_.points.size(); p++) {
         // For each plane
         for (int i=0; i<4;i++) {
             //detect collision
-            float dist= (dot(vec2(planes[i][0],planes[i][1]),body_.points[p])+ planes[i][2])/(sqrt(planes[i][0]*planes[i][0] + planes[i][1]*planes[i][1]));
+            float dist= dot(vec2(planes[i][0],planes[i][1]),body_.points[p])+ planes[i][2];
             if (dist < 0.0f) {
+                // std::cout << dist << std::endl;
 
                 // Compute relative velocity
                 float vrel = dot(vec2(planes[i][0], planes[i][1]),body_.linear_velocity);
