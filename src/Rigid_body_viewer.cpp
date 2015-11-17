@@ -15,6 +15,7 @@
 
 #include "Rigid_body_viewer.h"
 #include <utils/gl.h>
+#include <cmath>
 
 
 //== IMPLEMENTATION ========================================================== 
@@ -218,6 +219,13 @@ void Rigid_body_viewer:: draw()
 
 //-----------------------------------------------------------------------------
 
+vec2 localToWorldRotation(float theta, vec2 localVector){
+    float c = std::cos(theta);
+    float s = std::sin(theta);
+
+    return vec2(c*localVector[0]-s*localVector[1],
+                s*localVector[0]+c*localVector[1]);
+}
 
 void Rigid_body_viewer::compute_forces()
 { 
@@ -248,19 +256,19 @@ void Rigid_body_viewer::compute_forces()
 
     // Damping
     // Linear
-    //body_.force  += -1.0f * damping_linear_*body_.linear_velocity;
+    body_.force  += -1.0f * damping_linear_*body_.linear_velocity;
     // Angular
-    //body_.torque += -1.0f * damping_angular_*body_.angular_velocity;
+    body_.torque += -1.0f * damping_angular_*body_.angular_velocity;
 
     //Mouse
     //Force
     if (mouse_spring_.active)
     {
         //Calculate the position of in world coordinates
-        vec2 pos0 = body_.position + body_.r[ mouse_spring_.particle_index ];
+        vec2 pos0 = body_.position + localToWorldRotation(-body_.orientation, body_.r[ mouse_spring_.particle_index ]);
         vec2 pos1 = mouse_spring_.mouse_position;
 
-        vec2 vel0 = body_.linear_velocity;// + body_.angular_velocity*perp(body_.r[mouse_spring_.particle_index]);
+        vec2 vel0 = body_.linear_velocity + body_.angular_velocity*perp(body_.r[mouse_spring_.particle_index]);
         vec2 vel1 = vec2(0,0);
 
         float d = norm(pos0 - pos1);
@@ -271,10 +279,9 @@ void Rigid_body_viewer::compute_forces()
         body_.force += mouseSpringForce;
 
         //Add the torque
-        body_.torque += dot(perp(body_.r.at(mouse_spring_.particle_index)), mouseSpringForce);
+        body_.torque += dot(localToWorldRotation(-body_.orientation, perp(body_.r.at(mouse_spring_.particle_index))), mouseSpringForce);
     }
 }
-
 
 //-----------------------------------------------------------------------------
 
@@ -283,6 +290,38 @@ void Rigid_body_viewer::impulse_based_collisions()
 {
     /** \todo Handle collisions based on impulses
      */
+     
+
+    float planes[4][3] = {
+            {  0.0,  1.0, 1.0 },
+            {  0.0, -1.0, 1.0 },
+            {  1.0,  0.0, 1.0 },
+            { -1.0,  0.0, 1.0 }
+        };
+    int epsilon = 0;
+
+    // For each pts
+    for (int p=0; p<body_.points.size(); p++) {
+        // For each plane
+        for (int i=0; i<4;i++) {
+            //detect collision
+            float dist= (dot(vec2(planes[i][0],planes[i][1]),body_.points[p])+ planes[i][2])/(sqrt(planes[i][0]*planes[i][0] + planes[i][1]*planes[i][1]));
+            if (dist < 0.0f) {
+
+                // Compute relative velocity
+                float vrel = dot(vec2(planes[i][0], planes[i][1]),body_.linear_velocity);
+                float temp = dot(perp(body_.r[p]),vec2(planes[i][0],planes[i][1]));
+                // Compute j
+                float j = -(1+ epsilon)*vrel/(1/body_.mass + (temp*temp)/body_.inertia);
+
+                // Compute J = j.n
+                vec2 J = j*vec2(planes[i][0],planes[i][1]);
+
+                vec2 deltaV = J/body_.mass;
+                float deltaW = dot(perp(body_.r[p]),J)/body_.inertia;
+             }
+        }
+    }
 }
 
 
@@ -303,12 +342,14 @@ void Rigid_body_viewer::time_integration(float dt)
     // Use old or new velocity ??
 
     // Update position
-    body_.position += dt*body_.linear_velocity; // x = x + hv
     body_.linear_velocity += dt*body_.force/body_.mass; // v = v + hF/M
+    body_.position += dt*body_.linear_velocity; // x = x + hv
+    //body_.linear_velocity += dt*body_.force/body_.mass; // v = v + hF/M
 
     // Update orientation
-    body_.orientation += dt*body_.angular_velocity;
     body_.angular_velocity += dt*body_.torque/body_.inertia;
+    body_.orientation += dt*body_.angular_velocity;
+    //body_.angular_velocity += dt*body_.torque/body_.inertia;
 
     // Update particles
     body_.update_points();
