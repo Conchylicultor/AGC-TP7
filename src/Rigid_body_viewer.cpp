@@ -243,14 +243,36 @@ void Rigid_body_viewer::compute_forces()
     {
         body_.torque += dot(perp(body_.r.at(i)), body_.force/body_.points.size());
     }
-    std::cout << body_.torque << std::endl;
-    std::cout << body_.force/body_.points.size() << std::endl;
+    // std::cout << body_.torque << std::endl;
+    // std::cout << body_.force/body_.points.size() << std::endl;
 
     // Damping
     // Linear
-    body_.force  += -1.0f * damping_linear_*body_.linear_velocity;
+    //body_.force  += -1.0f * damping_linear_*body_.linear_velocity;
     // Angular
-    body_.torque += -1.0f * damping_angular_*body_.angular_velocity;
+    //body_.torque += -1.0f * damping_angular_*body_.angular_velocity;
+
+    //Mouse
+    //Force
+    if (mouse_spring_.active)
+    {
+        //Calculate the position of in world coordinates
+        vec2 pos0 = body_.position + body_.r[ mouse_spring_.particle_index ];
+        vec2 pos1 = mouse_spring_.mouse_position;
+
+        vec2 vel0 = body_.linear_velocity;// + body_.angular_velocity*perp(body_.r[mouse_spring_.particle_index]);
+        vec2 vel1 = vec2(0,0);
+
+        float d = norm(pos0 - pos1);
+
+        vec2 mouseSpringForce = -1 * (spring_stiffness_*d + spring_damping_*dot(vel0-vel1, pos0-pos1)/d) * ((pos0-pos1)/d);
+
+        //Add the force
+        body_.force += mouseSpringForce;
+
+        //Add the torque
+        body_.torque += dot(perp(body_.r.at(mouse_spring_.particle_index)), mouseSpringForce);
+    }
 }
 
 
