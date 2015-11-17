@@ -205,6 +205,12 @@ void Rigid_body_viewer::compute_forces()
      \li add damping to linear and angular movement
      \li add the mouse spring force
      */
+
+    //Clear forces
+    body_.force = vec2(0,0);
+
+    //Add gravity
+    body_.force += vec2(0,9.81*body_.mass);
 }
 
 
