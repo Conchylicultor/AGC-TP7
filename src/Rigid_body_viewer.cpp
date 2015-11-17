@@ -208,9 +208,25 @@ void Rigid_body_viewer::compute_forces()
 
     //Clear forces
     body_.force = vec2(0,0);
+    //Clear torque
+    body_.torque = 0;
+
+    //Dont calculate another force here, or the torque will be wrong!!!!!
 
     //Add gravity
-    body_.force += vec2(0,9.81*body_.mass);
+    //Force
+    body_.force += vec2(0,-9.81*body_.mass);
+    //Torque
+    for (unsigned int i=0; i<body_.points.size(); ++i)
+        body_.torque += dot(perp(body_.r.at(i)), body_.force/body_.points.size());
+
+    //Damping
+    //Linear
+    body_.force += -1*damping_linear_*body_.linear_velocity;
+    //Angular
+    body_.torque += -1*damping_angular_*body_.angular_velocity;
+
+
 }
 
 
