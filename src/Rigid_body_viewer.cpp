@@ -322,6 +322,9 @@ void Rigid_body_viewer::impulse_based_collisions()
 
                 vec2 deltaV = J/body_.mass;
                 float deltaW = dot(perp(body_.r[p]),J)/body_.inertia;
+
+                body_.linear_velocity += deltaV;
+                body_.angular_velocity += deltaW;
              }
         }
     }
