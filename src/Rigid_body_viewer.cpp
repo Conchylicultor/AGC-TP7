@@ -225,8 +225,6 @@ void Rigid_body_viewer::compute_forces()
     body_.force += -1*damping_linear_*body_.linear_velocity;
     //Angular
     body_.torque += -1*damping_angular_*body_.angular_velocity;
-
-
 }
 
 
@@ -253,6 +251,20 @@ void Rigid_body_viewer::time_integration(float dt)
      \li update linear and angular velocities
      \li call update_points() at the end to compute the new particle positions
      */
+    // Euler step
+    // Use old or new velocity ??
+
+    // Update position
+    body_.position += dt*body_.linear_velocity; // x = x + hv
+    body_.linear_velocity += dt*body_.force/body_.mass; // v = v + hF/M
+
+    // Update orientation
+    body_.orientation += dt*body_.angular_velocity;
+    body_.angular_velocity += dt*body_.torque/body_.inertia;
+
+    // Update particles
+    body_.update_points();
+
     // handle collisions
     impulse_based_collisions();
 }
