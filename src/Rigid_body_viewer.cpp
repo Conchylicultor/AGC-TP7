@@ -210,7 +210,7 @@ void Rigid_body_viewer::compute_forces()
     body_.force = vec2(0,0);
 
     //Add gravity
-    body_.force += vec2(0,9.81*body_.mass);
+    body_.force += vec2(0,-9.81*body_.mass);
 }
 
 
