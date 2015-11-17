@@ -15,6 +15,7 @@
 
 #include "Rigid_body_viewer.h"
 #include <utils/gl.h>
+#include <cmath>
 
 
 //== IMPLEMENTATION ========================================================== 
@@ -196,6 +197,13 @@ void Rigid_body_viewer:: draw()
 
 //-----------------------------------------------------------------------------
 
+vec2 localToWorldRotation(float theta, vec2 localVector){
+    float c = std::cos(theta);
+    float s = std::sin(theta);
+
+    return vec2(c*localVector[0]-s*localVector[1],
+                s*localVector[0]+c*localVector[1]);
+}
 
 void Rigid_body_viewer::compute_forces()
 { 
@@ -215,10 +223,10 @@ void Rigid_body_viewer::compute_forces()
 
     //Add gravity
     //Force
-    body_.force += vec2(0,-9.81*body_.mass);
+//    body_.force += vec2(0,-9.81*body_.mass);
     //Torque
-    for (unsigned int i=0; i<body_.points.size(); ++i)
-        body_.torque += dot(perp(body_.r.at(i)), body_.force/body_.points.size());
+//    for (unsigned int i=0; i<body_.points.size(); ++i)
+//        body_.torque += dot(perp(body_.r.at(i)), body_.force/body_.points.size());
 
     //Damping
     //Linear
@@ -231,7 +239,7 @@ void Rigid_body_viewer::compute_forces()
     if (mouse_spring_.active)
     {
         //Calculate the position of in world coordinates
-        vec2 pos0 = body_.position + body_.r[ mouse_spring_.particle_index ];
+        vec2 pos0 = body_.position + localToWorldRotation(-body_.orientation, body_.r[ mouse_spring_.particle_index ]);
         vec2 pos1 = mouse_spring_.mouse_position;
 
         vec2 vel0 = body_.linear_velocity + body_.angular_velocity*perp(body_.r[mouse_spring_.particle_index]);
@@ -248,7 +256,6 @@ void Rigid_body_viewer::compute_forces()
         body_.torque += dot(perp(body_.r.at(mouse_spring_.particle_index)), mouseSpringForce);
     }
 }
-
 
 //-----------------------------------------------------------------------------
 
