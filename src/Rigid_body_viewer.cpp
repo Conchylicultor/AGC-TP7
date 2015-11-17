@@ -264,6 +264,40 @@ void Rigid_body_viewer::impulse_based_collisions()
 {
     /** \todo Handle collisions based on impulses
      */
+     
+    /*
+    float planes[4][3] = {
+            {  0.0,  1.0, 1.0 },
+            {  0.0, -1.0, 1.0 },
+            {  1.0,  0.0, 1.0 },
+            { -1.0,  0.0, 1.0 }
+        };
+    int epsilon = 0;
+
+    // For each pts
+    for (int p=0; p<body_.points.size(); p++) {
+        // For each plane
+        for (int i=0; i<4;i++) {
+            //detect collision
+            float dist= (dot(vec2(planes[i][0],planes[i][1]),body_.points[p])+ planes[i][2])/(sqrt(planes[i][0]*planes[i][0] + planes[i][1]*planes[i][1]));
+            if (dist < 0.0f) {
+
+                // Compute relative velocity
+                float vrel = dot(vec2(planes[i][0], planes[i][1]),body_.linear_velocity);
+                float temp = dot(perp(body_.r[p]),vec2(planes[i][0],planes[i][1]));
+                // Compute j
+                float j = -(1+ epsilon)*vrel/(1/body_.mass + (temp*temp)/body_.inertia);
+
+                // Compute J = j.n
+                vec2 J = j*vec2(planes[i][0],planes[i][1]);
+
+                vec2 deltaV = J/body_.mass;
+                float deltaW = dot(perp(body_.r[p]),J)/body_.inertia;
+             }
+        }
+    }
+    */
+    
 }
 
 
