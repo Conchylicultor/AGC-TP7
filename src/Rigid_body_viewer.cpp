@@ -89,6 +89,28 @@ void Rigid_body_viewer::keyboard(int key, int x, int y)
         glutPostRedisplay();
         break;
     }
+    case '4':
+    {
+        std::vector<vec2> p;
+        p.push_back( vec2(-0.3, -0.1) );
+        p.push_back( vec2(-0.1, -0.1) );
+        p.push_back( vec2( 0.1, -0.1) );
+        p.push_back( vec2( 0.26, -0.1) );
+        p.push_back( vec2( 0.27, -0.1) );
+        p.push_back( vec2( 0.28, -0.1) );
+        p.push_back( vec2( 0.29,  0.1) );
+        p.push_back( vec2( 0.3,  0.1) );
+        p.push_back( vec2( 0.3,  0.1) );
+        p.push_back( vec2( 0.3,  0.1) );
+        p.push_back( vec2( 0.1,  0.1) );
+        p.push_back( vec2(-0.1,  0.1) );
+        p.push_back( vec2(-0.3,  0.1) );
+
+        body_ = Rigid_body(p, mass_);
+
+        glutPostRedisplay();
+        break;
+    }
     // let parent class do the work
     default:
     {
@@ -206,25 +228,29 @@ void Rigid_body_viewer::compute_forces()
      \li add the mouse spring force
      */
 
-    //Clear forces
-    body_.force = vec2(0,0);
-    //Clear torque
-    body_.torque = 0;
+    // Clear forces
+    body_.force = vec2(0.0f,0.0f);
+    // Clear torque
+    body_.torque = 0.0f;
 
-    //Dont calculate another force here, or the torque will be wrong!!!!!
+    // /!\ Warning: Dont calculate another force here, or the torque will be wrong!!!!!
 
-    //Add gravity
-    //Force
+    // Add gravity
+    // Force
     body_.force += vec2(0,-9.81*body_.mass);
-    //Torque
+    // Torque
     for (unsigned int i=0; i<body_.points.size(); ++i)
+    {
         body_.torque += dot(perp(body_.r.at(i)), body_.force/body_.points.size());
+    }
+    std::cout << body_.torque << std::endl;
+    std::cout << body_.force/body_.points.size() << std::endl;
 
-    //Damping
-    //Linear
-    body_.force += -1*damping_linear_*body_.linear_velocity;
-    //Angular
-    body_.torque += -1*damping_angular_*body_.angular_velocity;
+    // Damping
+    // Linear
+    body_.force  += -1.0f * damping_linear_*body_.linear_velocity;
+    // Angular
+    body_.torque += -1.0f * damping_angular_*body_.angular_velocity;
 }
 
 
