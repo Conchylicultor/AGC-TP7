@@ -268,7 +268,7 @@ void Rigid_body_viewer::compute_forces()
         vec2 pos0 = body_.position + localToWorldRotation(-body_.orientation, body_.r[ mouse_spring_.particle_index ]);
         vec2 pos1 = mouse_spring_.mouse_position;
 
-        vec2 vel0 = body_.linear_velocity + body_.angular_velocity*perp(body_.r[mouse_spring_.particle_index]);
+        vec2 vel0 = body_.linear_velocity + body_.angular_velocity*localToWorldRotation(-body_.orientation, perp(body_.r[mouse_spring_.particle_index])); // NO GLOBAL COORDINATES ????
         vec2 vel1 = vec2(0,0);
 
         float d = norm(pos0 - pos1);
@@ -311,14 +311,15 @@ void Rigid_body_viewer::impulse_based_collisions()
             if (dist < 0.0f) {
                 // std::cout << dist << std::endl;
 
+                vec2 n(planes[i][0], planes[i][1]);
                 // Compute relative velocity
-                float vrel = dot(vec2(planes[i][0], planes[i][1]),body_.linear_velocity);
-                float temp = dot(perp(body_.r[p]),vec2(planes[i][0],planes[i][1]));
+                float vrel = dot(n ,body_.linear_velocity + body_.angular_velocity*localToWorldRotation(-body_.orientation, perp(body_.r[p])));
+                float temp = dot(perp(body_.r[p]), n);
                 // Compute j
                 float j = -(1+ epsilon)*vrel/(1/body_.mass + (temp*temp)/body_.inertia);
 
                 // Compute J = j.n
-                vec2 J = j*vec2(planes[i][0],planes[i][1]);
+                vec2 J = j*n;
 
                 vec2 deltaV = J/body_.mass;
                 float deltaW = dot(perp(body_.r[p]),J)/body_.inertia;
